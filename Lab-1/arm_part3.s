@@ -14,7 +14,7 @@ print_string:
 Prints a null terminated string.
 -------------------------------------------------------
 Parameters:
-  r0 - address of string 
+  r0 - address of string
 Uses: No registers altered by the function
 -------------------------------------------------------
 */
@@ -30,12 +30,12 @@ Uses: No registers altered by the function
             LDR r3, =0xFFFF0000 // Mask for WSPACE control bits
             ANDS r4, r4, r3
             BEQ _ps_busy_wait // Wait if no space in the write FIFO
- 
+
  		    STR  r1, [r2]       // copy the character to the UART DATA field
         B    _ps_loop
     _print_string:
-	      POP {r0-r4, pc} 
-	
+	      POP {r0-r4, pc}
+
 
 idiv:
 /*
@@ -43,11 +43,11 @@ idiv:
 Performs integer division
 -------------------------------------------------------
 Parameters:
-  r0 - numerator 
+  r0 - numerator
   r1 - denominator
 Returns:
   r0 - quotient r0/r1
-  r1 - modulus r0%r1          
+  r1 - modulus r0%r1
 -------------------------------------------------------
 */
     MOV r2, r1
@@ -61,9 +61,9 @@ Returns:
         CMP r1, r2
         BHS _loop
     BX lr
-	
 
-print_number: 
+
+print_number:
 /*
 -------------------------------------------------------
 Prints a decimal number followed by newline.
@@ -82,7 +82,7 @@ Uses: No registers altered by the function
         PUSH {r1}
         CMP r0, #0
         BHI _div_loop
-        
+
     _print_loop:
         POP {r0}
         LDR r2, =#UART_BASE
@@ -93,7 +93,7 @@ Uses: No registers altered by the function
             LDR r3, =0xFFFF0000 // Mask for WSPACE control bits
             ANDS r4, r4, r3
             BEQ _print_busy_wait // Wait if no space in the write FIFO
-        
+
         STR r0, [r2]  // print digit
         SUB r5, r5, #1
         CMP r5, #0
@@ -102,8 +102,8 @@ Uses: No registers altered by the function
     MOV r0, #NEW_LINE
     STR r0, [r2]   // print newline
     POP {r0-r5, pc}
-	
-	
+
+
 
 /*******************************************************************
   Function for recursive factorial caclulation
@@ -113,9 +113,60 @@ Returns: factorial for that nummber
 *******************************************************************/
 // Write your function code here
 
+// r0 = n
+// CMP r0, #1
+// BGT factorial
+/*
+factorial:
+    MOV r4, r0
+    CMP r4, #1
+    BGT helper
+    BEQ finish
 
+
+helper:
+    MOV r1, r0
+    SUB r1, r1, #1
+    MUL r2, r0, r1
+    MOV r0, r1
+    B factorial
+
+finish:
+    MOV r0, r2
+ */
+
+factorial:
+    PUSH    {r4, lr}
+    MOV     r4, r0
+    CMP     r4, #1 
+    BLE     base
+   
+    SUB     r0, r4, #1
+    BL      factorial
+    MUL     r0, r4, r0
+    POP     {r4, pc}
+
+base:
+    MOV     r0, #1      
+    POP     {r4, pc}    
 
 /*******************************************************************
  Main program
 *******************************************************************/
-// Write code for your main program here
+
+_start:
+    LDR sp, =STACK_BASE
+    MOV r4, #1
+
+loop_factorial:
+    MOV r0, r4
+    BL factorial
+    BL print_number
+
+    CMP r4,#10
+    BEQ end
+
+    ADD r4,r4,#1
+    B loop_factorial
+end:
+    B end
