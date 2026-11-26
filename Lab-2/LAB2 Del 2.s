@@ -78,7 +78,7 @@ reset:
     STR r0, [r1]
 
     BX lr
-/*
+*/
 
     
     
