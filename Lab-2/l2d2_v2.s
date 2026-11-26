@@ -78,5 +78,5 @@ counter_down:
     BX lr
     
     
- _halt:
-     B _halt 
+_halt:
+    B _halt 
